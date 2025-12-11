@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template_string, request
 import smtplib
 from email.mime.text import MIMEText
@@ -8,23 +9,66 @@ HTML_FORM = """
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>Formulário - WebApp B</title>
+<meta charset="utf-8">
+<title>Formulário - WebApp B</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, #e74a3b, #f6c23e);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .card {
+        background: white;
+        padding: 30px;
+        width: 350px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        text-align: center;
+    }
+    h1 {
+        margin-bottom: 20px;
+        color: #e74a3b;
+    }
+    input, textarea {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+    button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        background: #e74a3b;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    button:hover {
+        background: #c0392b;
+    }
+</style>
 </head>
 <body>
-    <h1>Formulário - WebApp B</h1>
-    <form method="POST" action="/enviar">
-        <label>Seu nome:</label><br>
-        <input type="text" name="nome" required><br><br>
-
-        <label>Seu email:</label><br>
-        <input type="email" name="email" required><br><br>
-
-        <label>Mensagem:</label><br>
-        <textarea name="mensagem" required></textarea><br><br>
-
-        <button type="submit">Enviar</button>
-    </form>
+    <div class="card">
+        <h1>WebApp B</h1>
+        <form method="POST" action="/enviar">
+            <input type="text" name="nome" placeholder="Seu nome" required>
+            <input type="email" name="email" placeholder="Seu e-mail" required>
+            <textarea name="mensagem" placeholder="Sua mensagem" rows="4" required></textarea>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
 </body>
 </html>
 """
@@ -33,21 +77,43 @@ HTML_SUCESSO = """
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>Enviado!</title>
+<meta charset="utf-8">
+<title>Sucesso!</title>
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #f8f9fc;
+        margin: 0;
+    }
+    .card {
+        background: white;
+        text-align: center;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    h1 {
+        color: #1cc88a;
+    }
+</style>
 </head>
 <body>
-    <h1>Mensagem enviada com sucesso!</h1>
-    <p>Obrigado por enviar sua mensagem.</p>
+    <div class="card">
+        <h1>Mensagem enviada!</h1>
+        <p>Obrigado pelo contato.</p>
+    </div>
 </body>
 </html>
 """
 
-
-# CONFIGURAR SEU E-MAIL AQUI
-SMTP_EMAIL = "SEU_EMAIL_AQUI"
-SMTP_PASSWORD = "SUA_SENHA_DE_APLICATIVO_AQUI"
-SMTP_SERVER = "smtp.gmail.com"
+# 🔐 SEGURANÇA: Pegando variáveis de ambiente
+SMTP_EMAIL = os.environ.get("SMTP_EMAIL")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
+SMTP_SERVER = "smtp.office365.com"
 SMTP_PORT = 587
 
 
@@ -62,7 +128,6 @@ def enviar():
     email = request.form["email"]
     mensagem = request.form["mensagem"]
 
-    # Conteúdo do e-mail
     corpo_email = f"""
     Nova mensagem enviada pelo formulário (WebApp B):
 
@@ -73,9 +138,9 @@ def enviar():
     """
 
     msg = MIMEText(corpo_email)
-    msg["Subject"] = "Nova mensagem do formulário"
+    msg["Subject"] = "Nova mensagem do formulário (WebApp B)"
     msg["From"] = SMTP_EMAIL
-    msg["To"] = SMTP_EMAIL  # envia para você mesmo
+    msg["To"] = SMTP_EMAIL
 
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
