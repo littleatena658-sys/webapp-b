@@ -10,22 +10,59 @@ HTML_FORM = """
 <html>
 <head>
 <meta charset="utf-8">
-<title>Formulário - WebApp B</title>
+<title>Contato – WebApp B</title>
+
 <style>
-    body { margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;
-           background:linear-gradient(135deg,#e74a3b,#f6c23e);
-           height:100vh;display:flex;justify-content:center;align-items:center; }
-    .card{background:white;padding:30px;width:350px;border-radius:12px;
-          box-shadow:0 8px 20px rgba(0,0,0,0.2);text-align:center;}
-    h1{margin-bottom:20px;color:#e74a3b;}
-    input,textarea{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:1px solid #ccc;font-size:16px;}
-    button{width:100%;padding:12px;margin-top:10px;background:#e74a3b;color:white;border:none;border-radius:6px;font-size:18px;cursor:pointer;transition:0.2s;}
-    button:hover{background:#c0392b;}
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, #e74a3b, #f6c23e);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .card {
+        background: white;
+        padding: 35px;
+        width: 380px;
+        border-radius: 14px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+        text-align: center;
+    }
+    h1 {
+        margin-bottom: 20px;
+        color: #e74a3b;
+        font-size: 26px;
+    }
+    input, textarea {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 7px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+    }
+    button {
+        width: 100%;
+        padding: 14px;
+        margin-top: 10px;
+        background: #e74a3b;
+        color: white;
+        border: none;
+        border-radius: 7px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    button:hover { background: #c0392b; }
 </style>
+
 </head>
 <body>
   <div class="card">
-    <h1>WebApp B</h1>
+    <h1>WebApp B – Contact Form</h1>
     <form method="POST" action="/enviar">
       <input type="text" name="nome" placeholder="Seu nome" required>
       <input type="email" name="email" placeholder="Seu e-mail" required>
@@ -37,12 +74,43 @@ HTML_FORM = """
 </html>
 """
 
-HTML_SUCESSO = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sucesso!</title></head>
-<body style="font-family:Arial,Helvetica,sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;background:#f8f9fc;margin:0;">
-  <div style="background:white;text-align:center;padding:40px;border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,0.15);">
-    <h1 style="color:#1cc88a">Mensagem enviada!</h1><p>Obrigado pelo contato.</p>
+HTML_SUCESSO = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Mensagem enviada</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f8f9fc;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .box {
+        background: white;
+        padding: 45px;
+        border-radius: 14px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+    }
+    h1 { color: #1cc88a; }
+</style>
+
+</head>
+<body>
+  <div class="box">
+    <h1>Mensagem enviada com sucesso!</h1>
+    <p>Obrigado pelo contato. Retornaremos em breve.</p>
   </div>
-</body></html>"""
+</body>
+</html>
+"""
 
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 EMAIL_SENDER = os.environ.get("EMAIL_SENDER")
@@ -54,20 +122,57 @@ def index():
 @app.route("/enviar", methods=["POST"])
 def enviar():
     if not SENDGRID_API_KEY or not EMAIL_SENDER:
-        return "Erro de configuração: SENDGRID_API_KEY ou EMAIL_SENDER não definidos.", 500
+        return "Erro: SENDGRID_API_KEY ou EMAIL_SENDER não configurados.", 500
 
-    nome = request.form.get("nome", "")
-    email = request.form.get("email", "")
-    mensagem = request.form.get("mensagem", "")
+    nome = request.form["nome"]
+    email_usuario = request.form["email"]
+    mensagem = request.form["mensagem"]
 
-    subject = "Nova mensagem do formulário (WebApp B)"
-    content = f"Nova mensagem enviada pelo formulário (WebApp B):\n\nNome: {nome}\nEmail: {email}\nMensagem:\n{mensagem}"
+    # ----- Email para VOCÊ -----
+    subject_admin = "Nova mensagem (WebApp B)"
+    content_admin = f"""
+    Nova mensagem recebida via WebApp B:
 
-    message = Mail(from_email=EMAIL_SENDER, to_emails=EMAIL_SENDER, subject=subject, plain_text_content=content)
+    Nome: {nome}
+    Email: {email_usuario}
+
+    Mensagem:
+    {mensagem}
+    """
+
+    msg_admin = Mail(
+        from_email=EMAIL_SENDER,
+        to_emails=EMAIL_SENDER,
+        subject=subject_admin,
+        plain_text_content=content_admin
+    )
+
+    # ----- Email para USUÁRIO -----
+    subject_user = "Recebemos sua mensagem – WebApp B"
+    content_user = f"""
+Olá, {nome}!
+
+Obrigado por entrar em contacto. Aqui está uma cópia da sua mensagem:
+
+"{mensagem}"
+
+Nossa equipa irá analisar e responder o mais rapidamente possível.
+
+Atenciosamente,  
+WebApp B
+"""
+
+    msg_user = Mail(
+        from_email=EMAIL_SENDER,
+        to_emails=email_usuario,
+        subject=subject_user,
+        plain_text_content=content_user
+    )
 
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
-        response = sg.send(message)
+        sg.send(msg_admin)
+        sg.send(msg_user)
         return render_template_string(HTML_SUCESSO)
     except Exception as e:
         return f"Erro ao enviar via SendGrid: {e}", 500
